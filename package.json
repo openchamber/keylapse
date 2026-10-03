@@ -1,0 +1,8 @@
+{
+  "name": "keylapse-dev",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "kl-dev": "node scripts/kl-dev.mjs"
+  }
+}
