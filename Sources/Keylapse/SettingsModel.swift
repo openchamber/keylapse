@@ -391,8 +391,9 @@ final class SettingsModel: ObservableObject {
             finish(target, with: .modifiers(chord))
             return true
         }
+        // The hint stays put while keys are held: a line that rewrote itself on every modifier
+        // could not be read anyway. The keys speak for themselves on release.
         heldWhileRecording.formUnion(key.held)
-        recordingHint = "Release to use \(ModifierChord(heldWhileRecording).title) on its own, or press another key with it."
         return true
     }
 

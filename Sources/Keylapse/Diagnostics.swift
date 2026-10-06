@@ -412,7 +412,6 @@ enum Diagnostics {
         }
         if arguments.contains("--preview-recording") {
             model.recording = .correction
-            model.recordingHint = "Release to use Control + Option on its own, or press another key with it."
         }
         if arguments.contains("--preview-refused") {
             model.recording = .correction

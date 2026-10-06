@@ -415,7 +415,7 @@ struct KeylapseSettingsView: View {
     /// keys or when it fires; while recording, what is expected; after a refusal, why.
     private func detail(for target: SettingsModel.RecordingTarget, trigger: Trigger) -> String {
         if model.recording == target {
-            return model.recordingHint ?? "Press the key or combination to use. Esc keeps the current one."
+            return model.recordingHint ?? "Press a key or combination, or modifiers alone. Esc keeps the current one."
         }
         // A shortcut with Fn in it does nothing for Keylapse while macOS keeps the key for
         // itself; the row must not look ready when it is not.

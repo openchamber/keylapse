@@ -164,7 +164,7 @@ extension KeylapseSettingsView {
                     Text(target == .correction ? "Now press keys to correct text" : recording ? "Press a key to switch layouts" : "Switch layouts")
                         .opacity(recording && !model.hintSwitchOn ? 0.62 : 1)
                         .animation(.easeInOut(duration: 0.8), value: model.hintSwitchOn)
-                    Text(recording ? (model.recordingHint ?? "Esc cancels.") : working ? "Click the keys to change them." : "Works once Accessibility is granted.")
+                    Text(recording ? (model.recordingHint ?? "Modifiers alone work too. Esc cancels.") : working ? "Click the keys to change them." : "Works once Accessibility is granted.")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(model.rejected == shown ? SettingsPalette.refusal : SettingsPalette.secondary)
                         .lineLimit(2)
@@ -278,7 +278,7 @@ extension KeylapseSettingsView {
 
     private func demoHint(ready: Bool, succeeded: Bool) -> String {
         guard let demo = model.demo else { return "" }
-        if model.recording == .correction && ready { return model.recordingHint ?? "Press a key or combination." }
+        if model.recording == .correction && ready { return model.recordingHint ?? "Press a key or combination, or modifiers alone." }
         if !ready { return "Finish the setup above first." }
         if succeeded { return "Fixed. These keys work in every app." }
         // Try it obeys the same rules as a correction anywhere else, so it says when the
