@@ -79,6 +79,10 @@ final class SettingsModel: ObservableObject {
     @Published var recordingHint: String?
     /// A row whose last recording was refused; its keys flash red for a moment.
     @Published var rejected: RecordingTarget?
+    /// Rows whose keys have just been put back by Reset; they light up once in the accent colour
+    /// so the change is seen.
+    @Published var flashed: Set<RecordingTarget> = []
+    private var flashToken = 0
     enum RecordingTarget { case switchKey, correction }
     private var recordingMonitor: Any?
     /// A click anywhere ends a recording, like Esc. Buttons act when the mouse goes up, so the
@@ -320,6 +324,13 @@ final class SettingsModel: ObservableObject {
     func resetShortcut() {
         stopRecording()
         setShortcut(.standard)
+        flashed = [.switchKey, .correction]
+        flashToken += 1
+        let token = flashToken
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) { [weak self] in
+            guard let self, self.flashToken == token else { return }
+            self.flashed = []
+        }
     }
 
     /// Set while recording after Use other keys: the point is to do without Fn, so keys with

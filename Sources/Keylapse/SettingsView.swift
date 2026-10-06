@@ -444,7 +444,8 @@ struct KeylapseSettingsView: View {
         let active = model.recording == target && !quiet
         let hovered = model.hoveredKeys == target && !quiet
         let refused = model.rejected == target && !quiet
-        let breathing = pulsing && !active && !refused
+        let flashing = model.flashed.contains(target) && !active && !refused
+        let breathing = pulsing && !active && !refused && !flashing
         // While recording the old keys make way: an empty cap waits for the first press, and
         // the modifiers held so far appear as they are pressed.
         let held = ModifierChord(model.heldWhileRecording).keys.map(SettingsKeycap.Key.modifier)
@@ -463,13 +464,15 @@ struct KeylapseSettingsView: View {
                     SettingsKeycap(key)
                         .overlay {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .strokeBorder(refused ? SettingsPalette.refusal : active ? SettingsPalette.accent
+                                .strokeBorder(refused ? SettingsPalette.refusal : active || flashing ? SettingsPalette.accent
                                               : breathing ? SettingsPalette.accent.opacity(model.hintSwitchOn ? 1 : 0.25) : .white.opacity(hovered ? 0.6 : 0),
-                                              lineWidth: active || refused || breathing ? 2 : 1)
+                                              lineWidth: active || refused || breathing || flashing ? 2 : 1)
                         }
-                        // Waiting for a key press glows, and breathes wherever the beat is running.
-                        .shadow(color: SettingsPalette.accent.opacity(active && !refused ? (model.hintSwitchOn ? 0.95 : 0.4) : breathing && model.hintSwitchOn ? 0.8 : 0),
+                        // Waiting for a key press glows, and breathes wherever the beat is running;
+                        // keys just put back by Reset light up once.
+                        .shadow(color: SettingsPalette.accent.opacity(active && !refused ? (model.hintSwitchOn ? 0.95 : 0.4) : flashing ? 0.95 : breathing && model.hintSwitchOn ? 0.8 : 0),
                                 radius: active ? 9 : 7)
+                        .animation(.easeInOut(duration: 0.3), value: flashing)
                         .animation(.easeInOut(duration: 0.8), value: model.hintSwitchOn)
                         .brightness(hovered && !active ? 0.12 : 0)
                 }
