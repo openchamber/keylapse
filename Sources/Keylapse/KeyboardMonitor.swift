@@ -22,6 +22,7 @@ struct ObservedKey {
 
 final class KeyboardMonitor {
     static let ownEventTag: Int64 = 0x4B45594C41505345
+    static let globeKey: UInt16 = 179
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private var gesture = KeyGesture()
@@ -102,6 +103,10 @@ final class KeyboardMonitor {
     private func handle(_ type: CGEventType, _ event: CGEvent) -> Bool {
         guard event.getIntegerValueField(.eventSourceUserData) != Self.ownEventTag else { return false }
         let keyCode = UInt16(event.getIntegerValueField(.keyboardEventKeycode))
+        // The Fn (Globe) key also arrives as a key press, code 179, besides its modifier flag.
+        // The flag is what Keylapse works with; the press is nothing, and while recording it is
+        // kept from macOS so the emoji picker does not open.
+        if type == .keyDown && keyCode == Self.globeKey { return recorder != nil }
         let key = ObservedKey(keyCode: keyCode, isKeyDown: type == .keyDown, flags: event.flags)
         if let recorder {
             if type == .keyDown, event.getIntegerValueField(.keyboardEventAutorepeat) != 0 { return true }

@@ -258,13 +258,15 @@ extension KeylapseSettingsView {
                         .buttonStyle(QuietButtonStyle())
                         .help("Put the wrong word back and try again. ⌘Z undoes a correction in any app.")
                 } else {
-                    // Back to the standard keys, only once they have been changed.
-                    if model.shortcut != .standard {
+                    // Back to the standard keys, only once they have been changed; then the
+                    // keys are the user's own already and the other button says Change.
+                    let changed = model.shortcut != .standard
+                    if changed {
                         Button("Reset", action: model.resetShortcut)
                             .buttonStyle(QuietButtonStyle())
                             .help("Back to Fn and Control + Fn")
                     }
-                    Button("Set my own") { model.startRecording(.correction) }
+                    Button(changed ? "Change" : "Set my own") { model.startRecording(.correction) }
                         .buttonStyle(QuietButtonStyle())
                         .help("Record another shortcut for correcting text")
                 }
@@ -290,7 +292,7 @@ extension KeylapseSettingsView {
         // Try it obeys the same rules as a correction anywhere else, so it says when the
         // active layout would make the real correction refuse or ask.
         if demo.needsSwitch { return "Switch to \(demo.layoutName) first, then press the keys." }
-        return "Press these keys, or set your own."
+        return model.shortcut == .standard ? "Press these keys, or set your own." : "Press these keys."
     }
 }
 
