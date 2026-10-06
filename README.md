@@ -16,7 +16,13 @@ You type a whole sentence, look up, and it reads `ghbdsn цщкдв`. Wrong layo
 
 ## Get started
 
-1. Download `Keylapse-<version>.zip` from the [latest release](https://github.com/openchamber/keylapse/releases/latest), unzip it, drop Keylapse into Applications and open it. The welcome window walks you through the rest.
+1. Download `Keylapse-<version>.zip` from the [latest release](https://github.com/openchamber/keylapse/releases/latest), unzip it, drop Keylapse into Applications and open it. Or let Homebrew do the dropping:
+
+   ```sh
+   brew install --cask openchamber/tap/keylapse
+   ```
+
+   Either way, the welcome window walks you through the rest.
 
    ![The Keylapse window on first launch: setup steps, a word to try the correction on, and the shortcut keys](docs/welcome.png)
 
@@ -66,6 +72,18 @@ Whatever you select is corrected. A sentence typed half on one layout and half o
 English and Ukrainian are tested end to end. Other languages should work and are waiting for a tester. Letters typed through dead keys cannot always be corrected.
 
 Correction needs an editable field that accepts a paste. Password fields and some editors do not.
+
+## Questions people ask
+
+**Nothing happens when I press Fn.** macOS is keeping the key for itself. Set Fn to Do Nothing in Keyboard settings (the Setup step points there), or give Keylapse other keys with Use other keys. Another layout switcher that also sits on Fn has to go.
+
+**It does nothing in a password field, or in my terminal.** On purpose, and not up to Keylapse. While a password field has the keyboard, macOS lets no app see keys. Terminals and some editors do not take a paste, and the correction is a paste.
+
+**Does it work in Slack, VS Code, the browser?** Yes. Apps built on web views do not say what is selected, so Keylapse asks with a quiet copy, waits at most 0.4 s, and puts your clipboard back. If an app will not answer a copy either, select the text and try again.
+
+**Why Accessibility and Input Monitoring?** Accessibility is how Keylapse reads the selection and replaces it. Input Monitoring is how it sees the shortcut keys; on most Macs it comes with Accessibility and the row says so.
+
+**What leaves my Mac?** One request a day to GitHub to ask for a newer version. No text, ever.
 
 ## Building from source
 

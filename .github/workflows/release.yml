@@ -6,7 +6,8 @@
 # APPLE_CERTIFICATE_PASSWORD, APPLE_SIGNING_IDENTITY (its name, "Developer ID Application: …"),
 # APPLE_ID, APPLE_PASSWORD (an app-specific password), APPLE_TEAM_ID, and SPARKLE_PRIVATE_KEY
 # (the EdDSA key that signs updates, from `generate_keys -x`; its public half is SUPublicEDKey
-# in Resources/Info.plist). The release carries appcast.xml, which the installed app reads at
+# in Resources/Info.plist). Optional: HOMEBREW_TAP_TOKEN, a token with write access to
+# openchamber/homebrew-tap, so the cask there follows each release. The release carries appcast.xml, which the installed app reads at
 # https://github.com/openchamber/keylapse/releases/latest/download/appcast.xml.
 name: Release
 
@@ -89,6 +90,20 @@ jobs:
           gh release create "$GITHUB_REF_NAME" "dist/release/Keylapse-$VERSION.zip" dist/release/appcast.xml \
             --title "Keylapse $VERSION" \
             --notes-file "dist/release/Keylapse-$VERSION.txt"
+
+      - name: Update the Homebrew cask
+        env:
+          HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          if [ -z "$HOMEBREW_TAP_TOKEN" ]; then
+            echo "No HOMEBREW_TAP_TOKEN secret: the cask in openchamber/homebrew-tap was not updated."
+            exit 0
+          fi
+          SHA="$(shasum -a 256 "dist/release/Keylapse-$VERSION.zip" | cut -d' ' -f1)"
+          git clone --depth 1 "https://x-access-token:$HOMEBREW_TAP_TOKEN@github.com/openchamber/homebrew-tap.git" "$RUNNER_TEMP/tap"
+          cd "$RUNNER_TEMP/tap"
+          sed -i '' -e "s/^  version \".*\"/  version \"$VERSION\"/" -e "s/^  sha256 \".*\"/  sha256 \"$SHA\"/" Casks/keylapse.rb
+          git -c user.name="Keylapse release" -c user.email="noreply@github.com" commit -am "Keylapse $VERSION" && git push
 
       - name: Remove the signing keychain
         if: always()
