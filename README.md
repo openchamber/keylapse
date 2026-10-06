@@ -1,8 +1,16 @@
-# Keylapse
+<p align="center"><img src="docs/icon.png" width="128" alt=""></p>
+<h1 align="center">Keylapse</h1>
+<p align="center">Fixes text typed in the wrong layout.</p>
+<p align="center">
+  <a href="https://github.com/openchamber/keylapse/releases/latest"><img src="https://img.shields.io/github/v/release/openchamber/keylapse?label=release&color=4b8bf5" alt="Latest release"></a>
+  <a href="https://github.com/openchamber/keylapse/releases"><img src="https://img.shields.io/github/downloads/openchamber/keylapse/total?color=4b8bf5" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/macOS-13%2B-4b8bf5" alt="macOS 13 or later">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/openchamber/keylapse?color=4b8bf5" alt="GPL-3.0"></a>
+</p>
 
 You type a whole sentence, look up, and it reads `ghbdsn цщкдв`. Wrong layout again. Keylapse is a menu bar app for the Mac that fixes this: select the text, press `Control + Fn`, and it becomes `привіт world`. Both halves, each the right way round. No retyping, no dictionaries, nothing leaves your Mac.
 
-`Fn` on its own switches layouts. Any layout macOS knows is fine. macOS 13 or later.
+`Fn` on its own switches layouts. Any layout macOS knows is fine.
 
 ![A sentence typed on two layouts, selected and corrected with one key press](docs/correction.gif)
 
