@@ -353,6 +353,12 @@ struct ShortcutTests {
         #expect(split("ghbdsn ghbdsn", active: "en") == runs(("ghbdsn ghbdsn", "en")))
     }
 
+    @Test func aWordThatChangesAlphabetMidwayIsSplitThere() {
+        #expect(split("helloпривіт", active: "en") == runs(("hello", "en"), ("привіт", "uk")))
+        #expect(split("влалво прпрпрgngngn!", active: "en") == runs(("влалво прпрпр", "uk"), ("gngngn!", "en")))
+        #expect(split("руддщworld", active: "en") == runs(("руддщ", "uk"), ("world", "en")))
+    }
+
     @Test func sharedWordsFollowTheirNeighboursThenTheActiveLayout() {
         #expect(split("мама прывітанне", active: "en") == runs(("мама прывітанне", "by")))
         #expect(split("мама руддщ", active: "by") == runs(("мама руддщ", "uk")))
@@ -379,7 +385,6 @@ struct ShortcutTests {
 
     @Test func splitRefusesWhatNoLayoutTypesAndTextWithoutLetters() {
         #expect(split("ghbdsn объект", active: "uk") == .impossible)
-        #expect(split("helloпривіт", active: "uk") == .impossible)
         #expect(split("123 🙂", active: "uk") == .noLetters)
         #expect(split("", active: "uk") == .noLetters)
     }

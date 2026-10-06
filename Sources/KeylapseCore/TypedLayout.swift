@@ -45,9 +45,10 @@ public enum TypedLayout {
         case noLetters
     }
 
-    /// The text word by word, each word with the layout that typed it. Spaces, punctuation
-    /// and digits go with the word before them (the first word when there is none), so they
-    /// are converted on the same keys as that word.
+    /// The text word by word, each word with the layout that typed it. A word that changes
+    /// alphabet midway (the layout was switched mid-word) is split where no layout could have
+    /// typed both parts. Spaces, punctuation and digits go with the word before them (the
+    /// first word when there is none), so they are converted on the same keys as that word.
     /// - Parameters:
     ///   - layouts: the layouts that can be corrected, in list order.
     public static func split(_ text: String, layouts: [Layout], activeID: String) -> Split {
@@ -55,12 +56,22 @@ public enum TypedLayout {
         var words: [(text: String, letters: Set<Character>, candidates: [Int])] = []
         var current = ""
         var inWord = false
+        /// The layouts that type every letter of the word so far; nil before its first letter.
+        var fitting: Set<Int>?
         for character in text {
             let wordCharacter = !character.isWhitespace
-            if wordCharacter != inWord && !current.isEmpty {
+            var own: Set<Int>?
+            if character.isLetter {
+                let lowered = LayoutAlphabet.derive(from: [character])
+                own = Set(layouts.indices.filter { lowered.allSatisfy(alphabets[$0].contains) })
+            }
+            let changesAlphabet = own.map { own in fitting.map { !$0.isEmpty && $0.isDisjoint(with: own) } ?? false } ?? false
+            if (wordCharacter != inWord || changesAlphabet) && !current.isEmpty {
                 words.append((current, [], []))
                 current = ""
+                fitting = nil
             }
+            if let own { fitting = fitting.map { $0.intersection(own) } ?? own }
             inWord = wordCharacter
             current.append(character)
         }
