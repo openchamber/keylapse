@@ -70,6 +70,13 @@ extension KeylapseSettingsView {
                     .frame(width: 17, height: 17)
                     .accessibilityHidden(true)
                 note("Click the menu bar flower to come back.")
+                Spacer(minLength: 12)
+                // Everything back to the first launch, offered only once something was changed.
+                if model.hasCustomSettings {
+                    Button("Reset settings", action: model.resetSettings)
+                        .buttonStyle(QuietButtonStyle())
+                        .help("Back to how Keylapse was on first launch: the shortcuts, the switches and Launch at login. Permissions stay.")
+                }
             }
             .padding(.top, -8)
         }
@@ -243,25 +250,15 @@ extension KeylapseSettingsView {
                     // layouts row above.
                     Text(recordingHere ? "Set your own keys to correct text" : "Correct selected text")
                         .opacity(current ? 0.7 : 1)
-                    HStack(spacing: 4) {
-                        Text(demoHint(ready: ready, succeeded: succeeded))
-                        // Back to the standard keys, as a word in the instruction rather than a
-                        // button by the keys; only once they have been changed.
-                        if !recordingHere, !succeeded, model.shortcut != .standard {
-                            Button("Reset them.", action: model.resetShortcut)
-                                .buttonStyle(.plain)
-                                .underline()
-                                .help("Back to Fn and Control + Fn")
-                        }
-                    }
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(model.rejected == .correction && ready ? SettingsPalette.refusal
-                                     : current || succeeded ? Color.white : SettingsPalette.secondary)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.9)
-                    .opacity(current && !model.hintSwitchOn ? 0.5 : 1)
-                    .animation(.easeInOut(duration: 0.8), value: model.hintSwitchOn)
-                    .animation(.easeOut(duration: 0.2), value: succeeded)
+                    Text(demoHint(ready: ready, succeeded: succeeded))
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(model.rejected == .correction && ready ? SettingsPalette.refusal
+                                         : current || succeeded ? Color.white : SettingsPalette.secondary)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.9)
+                        .opacity(current && !model.hintSwitchOn ? 0.5 : 1)
+                        .animation(.easeInOut(duration: 0.8), value: model.hintSwitchOn)
+                        .animation(.easeOut(duration: 0.2), value: succeeded)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 // No button by the keys: the keys themselves are the control that starts a

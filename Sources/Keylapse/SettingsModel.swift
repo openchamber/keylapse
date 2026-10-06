@@ -319,6 +319,22 @@ final class SettingsModel: ObservableObject {
 
     func resetShortcut() { setShortcut(.standard) }
 
+    /// Anything the user has changed from how Keylapse was on first launch. Permissions are
+    /// not settings: they belong to macOS.
+    var hasCustomSettings: Bool {
+        shortcut != .standard || switchOnRelease || clickIconToCorrect || launchAtLogin
+    }
+
+    /// Back to the first launch: the shortcuts, every switch, and the Try it word.
+    func resetSettings() {
+        stopRecording()
+        resetShortcut()
+        if switchOnRelease { setSwitchOnRelease(false) }
+        if clickIconToCorrect { setClickIconToCorrect(false) }
+        if launchAtLogin { setLaunchAtLogin(false) }
+        resetDemo()
+    }
+
     /// Set while recording after Use other keys: the point is to do without Fn, so keys with
     /// Fn in them are refused as long as macOS keeps Fn for itself.
     private var recordingWithoutFn = false
