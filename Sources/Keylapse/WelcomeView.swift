@@ -283,7 +283,6 @@ extension KeylapseSettingsView {
         if succeeded { return "Fixed. These keys work in every app." }
         // Try it obeys the same rules as a correction anywhere else, so it says when the
         // active layout would make the real correction refuse or ask.
-        if let language = demo.uncorrectedActive { return "Switch away from \(language), then press the keys." }
         if demo.needsSwitch { return "Switch to \(demo.layoutName) first, then press the keys." }
         return "Press these keys, or set your own."
     }

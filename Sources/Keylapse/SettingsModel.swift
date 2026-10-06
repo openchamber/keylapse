@@ -26,9 +26,6 @@ struct DemoSample: Equatable {
     let layoutName: String
     /// The real correction would ask for the layout the word was typed on to be active first.
     let needsSwitch: Bool
-    /// The active layout's language when the word counts as typed on it and it is one Keylapse
-    /// does not correct, so the page can say that plainly instead of naming a layout to switch to.
-    var uncorrectedActive: String? = nil
 }
 
 final class SettingsModel: ObservableObject {
@@ -184,8 +181,7 @@ final class SettingsModel: ObservableObject {
         let unmistakable = samples.first { TypedLayout.choose(for: $0.typed, layouts: layouts, activeID: "") == .source($0.source.id) }
         guard let sample = unmistakable ?? samples.first else { setDemo(nil); return }
         setDemo(DemoSample(typed: sample.typed, result: "hello", layoutID: sample.source.id, layoutName: sample.source.languageTitle,
-                           needsSwitch: (try? inputs.typedSource(of: sample.typed, among: supported)) == nil,
-                           uncorrectedActive: inputs.uncorrectedSource(of: sample.typed)?.languageTitle))
+                           needsSwitch: (try? inputs.typedSource(of: sample.typed, among: supported)) == nil))
     }
 
     private func setDemo(_ sample: DemoSample?) {

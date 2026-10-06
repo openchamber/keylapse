@@ -320,7 +320,6 @@ struct ShortcutTests {
     static let latin = "abcdefghijklmnopqrstuvwxyz"
     static let ukrainian = "абвгдежзийклмнопрстуфхцчшщьюяієїґ"
     static let belarusian = "абвгдежзйклмнопрстуфхцчшьюяіўыэё"
-    static let russian = "абвгдежзийклмнопрстуфхцчшщьюяыэъё"
     static let layouts: [(id: String, alphabet: String)] = [("en", latin), ("uk", ukrainian), ("by", belarusian), ("de", latin + "üöäß")]
 
     private func choose(_ text: String, active: String) -> TypedLayout.Choice {

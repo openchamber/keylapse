@@ -36,7 +36,7 @@ Keylapse can start when you log in. It can also correct the selection when you c
 
 ## Languages
 
-Text correction works with any keyboard layout macOS can describe as a key table, in any language: Keylapse reads each layout's own letters and maps them by physical key position. It needs at least two such layouts. Input sources that compose text, such as Japanese, Chinese or Korean input methods, are labelled **Switching only**: the switch key still cycles through them, and text typed on one of your other layouts can still be corrected while they are active. Russian layouts are also switching only: text typed on one is not corrected.
+Text correction works with any keyboard layout macOS can describe as a key table, in any language: Keylapse reads each layout's own letters and maps them by physical key position. It needs at least two such layouts. Input sources that compose text, such as Japanese, Chinese or Korean input methods, are labelled **Switching only**: the switch key still cycles through them, and text typed on one of your other layouts can still be corrected while they are active.
 
 Keylapse works out which layout the selected text was typed on from its letters: a layout that cannot type one of them is ruled out. If one layout is left, that is it, whichever layout is active, so you need not switch back first. If several are left (plain Latin letters fit both English and German), it takes the active layout when that is one of them, and otherwise asks you to switch to the layout the text was typed on rather than guess. With more than one layout to correct to, a small **Correct to** list asks which; whatever you choose there works.
 

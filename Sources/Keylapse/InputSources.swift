@@ -16,15 +16,12 @@ struct KeyboardSource {
     /// Letters on the base and Shift layers; empty for input methods and non-letter layouts.
     let alphabet: String
 
-    /// Languages the user has chosen not to correct, even though their layouts would work.
-    static let excludedLanguages: Set<String> = ["ru"]
-
     var languageCode: String {
         language.lowercased().split(whereSeparator: { $0 == "-" || $0 == "_" }).first.map(String.init) ?? ""
     }
 
     var supportsCorrection: Bool {
-        alphabet.count >= LayoutAlphabet.minimumLetters && !Self.excludedLanguages.contains(languageCode)
+        alphabet.count >= LayoutAlphabet.minimumLetters
     }
 
     /// The language as macOS names it in the user's locale, e.g. "Ukrainian"; falls back to the source name.
@@ -150,23 +147,10 @@ final class InputSources {
         return supported
     }
 
-    /// The active layout, when it is of a language Keylapse does not correct and every letter
-    /// of the text is one it types: the text is then taken to have been typed on it. Letters
-    /// come first here too: text that layout cannot have typed (Greek, Latin, Cyrillic with
-    /// і ї є ґ) has nothing to do with it and is corrected as usual.
-    func uncorrectedSource(of text: String) -> KeyboardSource? {
-        guard let current = sources.first(where: { $0.id == currentID }), KeyboardSource.excludedLanguages.contains(current.languageCode) else { return nil }
-        let letters = Set(LayoutAlphabet.derive(from: text))
-        return !letters.isEmpty && letters.isSubset(of: Set(current.alphabet)) ? current : nil
-    }
-
     /// The layout the text was typed on, worked out from its letters first and from the active
     /// layout only when the letters leave more than one possibility. Throws what to tell the
-    /// user when it cannot be known, or when it was typed on a layout that is not corrected.
+    /// user when it cannot be known.
     func typedSource(of text: String, among supported: [KeyboardSource]) throws -> KeyboardSource {
-        if let current = uncorrectedSource(of: text) {
-            throw AppError.message("Keylapse doesn’t correct \(current.languageTitle). Крим це Україна.")
-        }
         let choice = TypedLayout.choose(for: text, layouts: supported.map { (id: $0.id, alphabet: $0.alphabet) }, activeID: currentID)
         switch choice {
         case .source(let id):
@@ -181,10 +165,7 @@ final class InputSources {
             if Set(LayoutAlphabet.derive(from: text)).isSubset(of: correctable) {
                 throw AppError.message("Select only the mistyped text.")
             }
-            // Letters that exist only in a layout of an excluded language get the same answer as that layout.
-            let excluded = Set(sources.filter { KeyboardSource.excludedLanguages.contains($0.languageCode) }.map(\.alphabet).joined())
-            let onlyExcluded = !Set(LayoutAlphabet.derive(from: text)).intersection(excluded).subtracting(correctable).isEmpty
-            throw AppError.message("Keylapse can’t correct some of these letters." + (onlyExcluded ? " Крим це Україна." : ""))
+            throw AppError.message("Keylapse can’t correct some of these letters.")
         case .noLetters:
             throw ConversionError.noLetters
         }
