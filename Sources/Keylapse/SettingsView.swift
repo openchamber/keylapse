@@ -445,11 +445,15 @@ struct KeylapseSettingsView: View {
         let hovered = model.hoveredKeys == target && !quiet
         let refused = model.rejected == target && !quiet
         let breathing = pulsing && !active && !refused
+        // While recording the old keys make way: an empty cap waits for the first press, and
+        // the modifiers held so far appear as they are pressed.
+        let held = ModifierChord(model.heldWhileRecording).keys.map(SettingsKeycap.Key.modifier)
+        let shown = active ? (held.isEmpty ? [.plain("…")] : held) : keys
         return Button {
             active ? model.stopRecording() : model.startRecording(target)
         } label: {
             HStack(spacing: 4) {
-                ForEach(Array(keys.enumerated()), id: \.offset) { index, key in
+                ForEach(Array(shown.enumerated()), id: \.offset) { index, key in
                     if index > 0 {
                         Text("+")
                             .font(.system(size: 12, weight: .semibold))

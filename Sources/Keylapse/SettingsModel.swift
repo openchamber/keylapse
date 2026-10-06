@@ -81,9 +81,10 @@ final class SettingsModel: ObservableObject {
     @Published var rejected: RecordingTarget?
     enum RecordingTarget { case switchKey, correction }
     private var recordingMonitor: Any?
-    /// Modifier keys held so far during recording. They become a chord when all are released
-    /// with nothing else pressed, or the modifiers of a combination if a key follows.
-    private var heldWhileRecording: Set<HeldModifier> = []
+    /// Modifier keys held so far during recording, shown on the keycaps as they are pressed.
+    /// They become a chord when all are released with nothing else pressed, or the modifiers
+    /// of a combination if a key follows.
+    @Published var heldWhileRecording: Set<HeldModifier> = []
     private var rejectionToken = 0
 
     private let inputs: InputSources

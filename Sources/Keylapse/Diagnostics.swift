@@ -19,7 +19,7 @@ import KeylapseCore
 ///   --check-settings <path> [--preview-…]       render the Settings window to a PNG
 ///       --preview-welcome [--preview-demo-done] (the first-launch page), --preview-settings-page, --preview-waiting (Grant… clicked),
 ///       --preview-setup-ready, --preview-fn-conflict, --preview-fn-unknown,
-///       --preview-missing-permissions, --preview-destinations, --preview-switch-key <fn|rightOption|leftCommand…>, --preview-combo-shortcut, --preview-recording, --preview-refused, --preview-many-layouts, --preview-rows <n>, --preview-scrolled-to-end (centres the last layout)
+///       --preview-missing-permissions, --preview-destinations, --preview-switch-key <fn|rightOption|leftCommand…>, --preview-combo-shortcut, --preview-recording [--preview-recording-held], --preview-refused, --preview-many-layouts, --preview-rows <n>, --preview-scrolled-to-end (centres the last layout)
 enum Diagnostics {
     /// Checks that need no running application. Exits the process when one is requested.
     static func runStandaloneCheckIfRequested() {
@@ -412,6 +412,7 @@ enum Diagnostics {
         }
         if arguments.contains("--preview-recording") {
             model.recording = .correction
+            if arguments.contains("--preview-recording-held") { model.heldWhileRecording = [HeldModifier(.control, .either), HeldModifier(.option, .either)] }
         }
         if arguments.contains("--preview-refused") {
             model.recording = .correction
