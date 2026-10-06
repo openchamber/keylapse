@@ -427,7 +427,7 @@ enum Diagnostics {
         if arguments.contains("--preview-destinations") {
             let sources = app.inputs.sources.filter(\.supportsCorrection)
             if sources.count > 1 {
-                app.correction.presentDestinations(sources.dropFirst().map { (id: $0.id, title: $0.displayName) }) { _ in }
+                app.correction.presentDestinations(sources.dropFirst().map { (id: $0.id, title: $0.name(among: sources)) }) { _ in }
                 app.correction.chooser?.setFrameOrigin(Self.offScreen)
                 RunLoop.current.run(until: Date().addingTimeInterval(0.2))
             }

@@ -145,9 +145,19 @@ final class SelectionCorrector {
     }
 
     /// Where the selected text is on screen, in Cocoa coordinates, so a chooser can appear
-    /// next to it. Nil when the app does not say (many web views and custom editors do not).
+    /// next to it. Apps that do not say where the selection is (many web views and custom
+    /// editors) but do say where the field is give the field, when it is a short one such as
+    /// a message box, so the chooser still lands under the text being typed. Nil otherwise.
     func selectionRect(for pid: pid_t) -> NSRect? {
         guard let element = focusedElement(pid) else { return nil }
+        if let rect = selectionBounds(of: element) { return rect }
+        guard let field = frame(of: element), field.height <= Self.shortFieldHeight else { return nil }
+        return field
+    }
+
+    private static let shortFieldHeight: CGFloat = 120
+
+    private func selectionBounds(of element: AXUIElement) -> NSRect? {
         var range: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, kAXSelectedTextRangeAttribute as CFString, &range) == .success, let range else { return nil }
         var value: CFTypeRef?
@@ -155,7 +165,24 @@ final class SelectionCorrector {
               let value, CFGetTypeID(value) == AXValueGetTypeID() else { return nil }
         var rect = CGRect.zero
         guard AXValueGetValue(value as! AXValue, .cgRect, &rect), rect.height > 0, rect != .zero else { return nil }
-        // Accessibility measures from the top left of the main display; Cocoa from its bottom left.
+        return cocoaRect(rect)
+    }
+
+    private func frame(of element: AXUIElement) -> NSRect? {
+        var position: CFTypeRef?
+        var size: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXPositionAttribute as CFString, &position) == .success,
+              AXUIElementCopyAttributeValue(element, kAXSizeAttribute as CFString, &size) == .success,
+              let position, let size, CFGetTypeID(position) == AXValueGetTypeID(), CFGetTypeID(size) == AXValueGetTypeID() else { return nil }
+        var origin = CGPoint.zero
+        var extent = CGSize.zero
+        guard AXValueGetValue(position as! AXValue, .cgPoint, &origin), AXValueGetValue(size as! AXValue, .cgSize, &extent),
+              extent.height > 0, extent.width > 0 else { return nil }
+        return cocoaRect(CGRect(origin: origin, size: extent))
+    }
+
+    /// Accessibility measures from the top left of the main display; Cocoa from its bottom left.
+    private func cocoaRect(_ rect: CGRect) -> NSRect? {
         guard let main = NSScreen.screens.first else { return nil }
         return NSRect(x: rect.minX, y: main.frame.height - rect.maxY, width: rect.width, height: rect.height)
     }

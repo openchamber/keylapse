@@ -96,11 +96,11 @@ final class CorrectionFlow: NSObject, NSWindowDelegate {
             var plans: [Plan] = []
             if sources.count == 2 {
                 let (first, second) = (sources[0], sources[1])
-                plans.append(Plan(id: "swap", title: "\(first.displayName) ↔ \(second.displayName)",
+                plans.append(Plan(id: "swap", title: "\(first.name(among: supported)) ↔ \(second.name(among: supported))",
                                   destination: { $0.id == first.id ? second : first }))
             }
             for other in supported where !sources.contains(where: { $0.id == other.id }) {
-                plans.append(Plan(id: other.id, title: other.displayName, destination: { _ in other }))
+                plans.append(Plan(id: other.id, title: other.name(among: supported), destination: { _ in other }))
             }
             if plans.count == 1 {
                 try replace(runs, by: plans[0])

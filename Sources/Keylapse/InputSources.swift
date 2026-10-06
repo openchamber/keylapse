@@ -51,6 +51,12 @@ struct KeyboardSource {
         guard let variantTitle else { return languageTitle }
         return "\(languageTitle) · \(variantTitle)"
     }
+
+    /// The name among these layouts: the language alone unless another of them has the same
+    /// language, when the variant is needed to tell them apart.
+    func name(among others: [KeyboardSource]) -> String {
+        others.contains { $0.id != id && $0.languageCode == languageCode } ? displayName : languageTitle
+    }
 }
 
 final class InputSources {
