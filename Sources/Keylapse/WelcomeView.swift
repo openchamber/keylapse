@@ -258,6 +258,12 @@ extension KeylapseSettingsView {
                         .buttonStyle(QuietButtonStyle())
                         .help("Put the wrong word back and try again. ⌘Z undoes a correction in any app.")
                 } else {
+                    // Back to the standard keys, only once they have been changed.
+                    if model.shortcut != .standard {
+                        Button("Reset", action: model.resetShortcut)
+                            .buttonStyle(QuietButtonStyle())
+                            .help("Back to Fn and Control + Fn")
+                    }
                     Button("Set my own") { model.startRecording(.correction) }
                         .buttonStyle(QuietButtonStyle())
                         .help("Record another shortcut for correcting text")
