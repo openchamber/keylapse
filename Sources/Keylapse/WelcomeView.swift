@@ -239,7 +239,9 @@ extension KeylapseSettingsView {
             row {
                 let current = model.currentStep == .tryIt || recordingHere
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Correct selected text")
+                    // While recording the row's name says what is going on, as in the Switch
+                    // layouts row above.
+                    Text(recordingHere ? "Set your own keys to correct text" : "Correct selected text")
                         .opacity(current ? 0.7 : 1)
                     HStack(spacing: 4) {
                         Text(demoHint(ready: ready, succeeded: succeeded))

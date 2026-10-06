@@ -491,9 +491,10 @@ struct KeylapseSettingsView: View {
     private func shortcutRow(_ title: String, target: SettingsModel.RecordingTarget, trigger: Trigger) -> some View {
         let refused = model.rejected == target
         let waitsForFn = model.needsFnSetup && trigger.usesFn && model.recording != target
+        let recordingTitle = target == .switchKey ? "Set your own keys to switch layouts" : "Set your own keys to correct text"
         return row {
             VStack(alignment: .leading, spacing: 3) {
-                Text(title)
+                Text(model.recording == target ? recordingTitle : title)
                     .opacity(waitsForFn ? 0.5 : 1)
                 Text(detail(for: target, trigger: trigger))
                     .font(.system(size: 11, weight: .medium))
