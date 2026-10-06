@@ -172,13 +172,13 @@ final class SettingsModel: ObservableObject {
     private func refreshDemo() {
         let supported = inputs.sources.filter(\.supportsCorrection)
         guard let english = supported.first(where: { $0.languageCode == "en" }) else { setDemo(nil); return }
-        let layouts = supported.map { (id: $0.id, alphabet: $0.alphabet) }
+        let layouts = supported.map(\.layout)
         let samples: [(source: KeyboardSource, typed: String)] = supported.filter { $0.languageCode != "en" }.compactMap { other in
             guard let pair = try? inputs.layoutPair(english, other),
                   let typed = try? pair.convert("hello"), typed != "hello" else { return nil }
             return (other, typed)
         }
-        let unmistakable = samples.first { TypedLayout.choose(for: $0.typed, layouts: layouts, activeID: "") == .source($0.source.id) }
+        let unmistakable = samples.first { TypedLayout.split($0.typed, layouts: layouts, activeID: "") == .runs([.init(text: $0.typed, sourceID: $0.source.id)]) }
         guard let sample = unmistakable ?? samples.first else { setDemo(nil); return }
         setDemo(DemoSample(typed: sample.typed, result: "hello", layoutID: sample.source.id, layoutName: sample.source.languageTitle,
                            needsSwitch: (try? inputs.typedRuns(of: sample.typed, among: supported)) == nil))

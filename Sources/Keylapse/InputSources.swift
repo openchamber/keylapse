@@ -15,6 +15,10 @@ struct KeyboardSource {
     let language: String
     /// Letters on the base and Shift layers; empty for input methods and non-letter layouts.
     let alphabet: String
+    /// The key each lowercase letter sits on (Shift layer keys offset by 1000), the first found.
+    let positions: [Character: Int]
+
+    var layout: TypedLayout.Layout { TypedLayout.Layout(id: id, alphabet: alphabet, positions: positions) }
 
     var languageCode: String {
         language.lowercased().split(whereSeparator: { $0 == "-" || $0 == "_" }).first.map(String.init) ?? ""
@@ -81,9 +85,10 @@ final class InputSources {
             if let pointer = TISGetInputSourceProperty(source, kTISPropertyInputSourceLanguages) {
                 languages = Unmanaged<CFArray>.fromOpaque(pointer).takeUnretainedValue() as? [String] ?? []
             } else { languages = [] }
+            let table = alphabet(of: source)
             return KeyboardSource(source: source, id: string(source, kTISPropertyInputSourceID),
                                    name: string(source, kTISPropertyLocalizedName), language: languages.first ?? "",
-                                   alphabet: alphabet(of: source))
+                                   alphabet: table.alphabet, positions: table.positions)
         }
     }
 
@@ -107,18 +112,24 @@ final class InputSources {
         return ids
     }
 
-    /// Letters reachable on the base and Shift layers of a keyboard-layout source.
-    private func alphabet(of source: TISInputSource) -> String {
+    /// Letters reachable on the base and Shift layers of a keyboard-layout source, and the
+    /// key each sits on (the first found, base layer first, as `layoutPair` maps them).
+    private func alphabet(of source: TISInputSource) -> (alphabet: String, positions: [Character: Int]) {
         guard let pointer = TISGetInputSourceProperty(source, kTISPropertyInputSourceType),
               Unmanaged<CFString>.fromOpaque(pointer).takeUnretainedValue() == kTISTypeKeyboardLayout,
-              TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData) != nil else { return "" }
+              TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData) != nil else { return ("", [:]) }
         var characters: [Character] = []
+        var positions: [Character: Int] = [:]
         for shifted in [false, true] {
             for key in Self.letterKeys {
-                if let character = character(source, key, shifted) { characters.append(character) }
+                guard let character = character(source, key, shifted) else { continue }
+                characters.append(character)
+                for lowered in LayoutAlphabet.derive(from: [character]) where positions[lowered] == nil {
+                    positions[lowered] = Int(key) + (shifted ? 1000 : 0)
+                }
             }
         }
-        return LayoutAlphabet.derive(from: characters)
+        return (LayoutAlphabet.derive(from: characters), positions)
     }
 
     /// Physical keys that carry letters or punctuation on typing layouts, including the ISO extra key (10).
@@ -154,7 +165,7 @@ final class InputSources {
     /// first and from the active layout only when the letters leave more than one possibility.
     /// Throws what to tell the user when it cannot be known.
     func typedRuns(of text: String, among supported: [KeyboardSource]) throws -> [TypedRun] {
-        let split = TypedLayout.split(text, layouts: supported.map { (id: $0.id, alphabet: $0.alphabet) }, activeID: currentID)
+        let split = TypedLayout.split(text, layouts: supported.map(\.layout), activeID: currentID)
         switch split {
         case .runs(let runs):
             return try runs.map { run in
