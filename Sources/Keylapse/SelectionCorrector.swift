@@ -2,12 +2,6 @@ import Carbon
 import Cocoa
 import KeylapseCore
 
-/// Where a chooser or notice goes: just under this rectangle, or just above it.
-struct TextSpot {
-    let rect: NSRect
-    let above: Bool
-}
-
 /// The general pasteboard, saved and put back around a correction.
 struct Clipboard {
     typealias Snapshot = [[NSPasteboard.PasteboardType: Data]]
@@ -151,15 +145,14 @@ final class SelectionCorrector {
     }
 
     /// Where the selected text is on screen, in Cocoa coordinates, so a chooser can appear
-    /// next to it: under the selected text, or, in apps that do not say where the selection is
-    /// (many web views and custom editors) but do say where the field is, above the field when
-    /// it is a short one such as a message box, which usually sits at the bottom of its window.
-    /// Nil otherwise.
-    func selectionSpot(for pid: pid_t) -> TextSpot? {
+    /// next to it. Apps that do not say where the selection is (many web views and custom
+    /// editors) but do say where the field is give the field, when it is a short one such as
+    /// a message box. Nil otherwise.
+    func selectionRect(for pid: pid_t) -> NSRect? {
         guard let element = focusedElement(pid) else { return nil }
-        if let rect = selectionBounds(of: element) { return TextSpot(rect: rect, above: false) }
+        if let rect = selectionBounds(of: element) { return rect }
         guard let field = frame(of: element), field.height <= Self.shortFieldHeight else { return nil }
-        return TextSpot(rect: field, above: true)
+        return field
     }
 
     private static let shortFieldHeight: CGFloat = 120

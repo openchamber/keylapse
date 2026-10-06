@@ -135,7 +135,7 @@ final class DestinationChoiceButton: NSButton {
 /// A brief message by the text the user was trying to fix: the same glass as the chooser,
 /// marked with the flower. It never takes focus, so the editor keeps its selection.
 enum NoticePanel {
-    static func show(_ message: String, near selection: TextSpot?) {
+    static func show(_ message: String, near selection: NSRect?) {
         let width: CGFloat = 340
         let label = NSTextField(wrappingLabelWithString: message)
         label.font = .systemFont(ofSize: 13, weight: .medium)
@@ -172,25 +172,25 @@ enum NoticePanel {
 }
 
 extension NSPanel {
-    /// Just under the selected text, where the correction will land, so the eyes stay on it,
-    /// or just above a field that stands in for it; the other side when there is no room.
-    /// Apps that report neither get it at the pointer, and failing that in the middle.
-    func place(near selection: TextSpot?) {
+    /// Just under the selected text (or the field standing in for it), where the correction
+    /// will land, so the eyes stay on it; above it when there is no room below; at the pointer
+    /// when there is room neither below nor above, or the app does not report where the text
+    /// is; failing that in the middle.
+    func place(near selection: NSRect?) {
         let gap: CGFloat = 6
         let size = frame.size
         func kept(_ origin: NSPoint, in area: NSRect) -> NSPoint {
             NSPoint(x: min(max(origin.x, area.minX), area.maxX - size.width), y: min(max(origin.y, area.minY), area.maxY - size.height))
         }
-        if let spot = selection,
-           let screen = NSScreen.screens.first(where: { $0.frame.contains(NSPoint(x: spot.rect.midX, y: spot.rect.midY)) }) ?? NSScreen.main {
+        if let text = selection,
+           let screen = NSScreen.screens.first(where: { $0.frame.contains(NSPoint(x: text.midX, y: text.midY)) }) ?? NSScreen.main {
             let area = screen.visibleFrame
-            let text = spot.rect
             let below = NSPoint(x: text.minX, y: text.minY - gap - size.height)
             let above = NSPoint(x: text.minX, y: text.maxY + gap)
-            var origin = spot.above ? above : below
-            if spot.above ? origin.y + size.height > area.maxY : origin.y < area.minY { origin = spot.above ? below : above }
-            setFrameOrigin(kept(origin, in: area))
-            return
+            for origin in [below, above] where origin.y >= area.minY && origin.y + size.height <= area.maxY {
+                setFrameOrigin(kept(origin, in: area))
+                return
+            }
         }
         let mouse = NSEvent.mouseLocation
         if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouse) }) {
