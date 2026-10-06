@@ -67,7 +67,10 @@ jobs:
         run: |
           printf '%s' "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle.key"
           # What the in-app update window shows: the tag's message when it has one, else one line.
-          NOTES="$(git tag -l --format='%(contents)' "$GITHUB_REF_NAME" | sed '/^-----BEGIN/,$d')"
+          # actions/checkout leaves the tag pointing at the commit, so fetch the real tag object.
+          git fetch --force origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
+          NOTES="$(git for-each-ref "refs/tags/$GITHUB_REF_NAME" --format='%(contents)' | sed '/^-----BEGIN/,$d')"
+          [ "$(git cat-file -t "$GITHUB_REF_NAME")" = tag ] || NOTES=""
           [ -n "$NOTES" ] || NOTES="Keylapse $VERSION."
           printf '%s\n' "$NOTES" > "dist/release/Keylapse-$VERSION.txt"
           .build/artifacts/sparkle/Sparkle/bin/generate_appcast \
