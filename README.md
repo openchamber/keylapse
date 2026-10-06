@@ -1,14 +1,16 @@
 # Keylapse
 
-Switch keyboard layouts and fix text typed in the wrong one. For macOS 13 or later; tested on macOS 26.
+A menu bar app for the Mac. You type a sentence, look up, and it is gibberish because the layout was Ukrainian while you typed English. Select it, press `Control + Fn`, and `ghbdsn` becomes `привіт`. `руддщ` becomes `hello`. A sentence typed half on one layout and half on the other is fixed word by word.
 
-Select `ghbdsn`, press `Control + Fn`, and get `привіт` without retyping. It works both ways: `руддщ` becomes `hello`.
+`Fn` on its own switches layouts. Any layout macOS has works, with no dictionaries, and nothing leaves your Mac. macOS 13 or later.
 
-![The Keylapse window on first launch: setup steps, a word to try the correction on, and the shortcut keys](docs/welcome.png)
+![The Correct to list under a selected sentence typed on two layouts](docs/correct-to.png)
 
 ## Get started
 
 1. Download `Keylapse-<version>.zip` from the [latest release](https://github.com/openchamber/keylapse/releases/latest), unzip it, move Keylapse to Applications and open it. A welcome window appears.
+
+   ![The Keylapse window on first launch: setup steps, a word to try the correction on, and the shortcut keys](docs/welcome.png)
 2. Under **Setup**, click **Grant…** beside Accessibility and allow Keylapse in the macOS settings that open. A checkmark appears once granted, usually beside Input Monitoring too, since Accessibility covers it; if that row still asks, click its **Grant…** as well.
 3. If Setup asks you to set Fn to **Do Nothing**, click **Open Settings** and choose that action in macOS Keyboard settings. A checkmark appears once ready. Quit any other Fn language switcher.
 4. Under **Try it**, the word is already selected: press `Control + Fn` and watch it become `hello`. Then click **Start using Keylapse**. Keylapse follows the input sources enabled in macOS; click the flower in the menu bar, then **Keylapse** at the top of the menu, to open the window again.
@@ -47,8 +49,6 @@ Text correction works with any keyboard layout macOS can describe as a key table
 Keylapse works out which layout each word of the selected text was typed on from its letters: a layout that cannot type one of them is ruled out. If one layout is left, that is it, whichever layout is active, so you need not switch back first. If several are left (plain Latin letters fit both English and German), it takes the layout the words around it were typed on, then the active layout when that is one of them. When the layouts left would give the same result anyway, because they put those letters on the same keys, it does not matter and the text is corrected; otherwise Keylapse asks you to switch to the layout the text was typed on rather than guess.
 
 Whatever you select is corrected. A sentence typed partly on one layout and partly on another is swapped word by word, so `ghbdsn цщкдв` becomes `привіт world`; a word that changes alphabet midway is split there. With more than one way to correct the selection, a small **Correct to** list asks which; whatever you choose there works. For text from two layouts the first choice swaps them (English ↔ Ukrainian) and each other choice moves the whole text to that layout.
-
-![The Correct to list under a selected sentence typed on two layouts](docs/correct-to.png)
 
 English and Ukrainian have been tested with text replacement in an editor. Other languages still need testing. Letters typed through dead keys cannot always be corrected.
 
