@@ -71,11 +71,13 @@ extension KeylapseSettingsView {
                     .accessibilityHidden(true)
                 note("Click the menu bar flower to come back.")
                 Spacer(minLength: 12)
-                // Everything back to the first launch, offered only once something was changed.
-                if model.hasCustomSettings {
-                    Button("Reset settings", action: model.resetSettings)
+                // Both shortcuts back to the standard ones, offered only once they were changed.
+                // It says keys, because keys are all this page keeps: the switch beside it is
+                // in plain view.
+                if model.shortcut != .standard {
+                    Button("Reset keys", action: model.resetShortcut)
                         .buttonStyle(QuietButtonStyle())
-                        .help("Back to how Keylapse was on first launch: the shortcuts, the switches and Launch at login. Permissions stay.")
+                        .help("Back to Fn and Control + Fn")
                 }
             }
             .padding(.top, -8)
