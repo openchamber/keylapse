@@ -248,8 +248,10 @@ extension KeylapseSettingsView {
                         .animation(.easeOut(duration: 0.2), value: succeeded)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                // One button for the row's other action: other keys before the correction, the
-                // wrong word back after it.
+                // One quiet button for the row's other action, when there is one: Cancel while
+                // recording, the wrong word back after the correction, the standard keys back
+                // once they have been changed. The keys themselves are the control that starts
+                // a recording, as in the Switch layouts row above.
                 if recordingHere {
                     Button("Cancel", action: model.stopRecording)
                         .buttonStyle(QuietButtonStyle())
@@ -257,18 +259,10 @@ extension KeylapseSettingsView {
                     Button("Again", action: model.resetDemo)
                         .buttonStyle(QuietButtonStyle())
                         .help("Put the wrong word back and try again. ⌘Z undoes a correction in any app.")
-                } else {
-                    // Back to the standard keys, only once they have been changed; then the
-                    // keys are the user's own already and the other button says Change.
-                    let changed = model.shortcut != .standard
-                    if changed {
-                        Button("Reset", action: model.resetShortcut)
-                            .buttonStyle(QuietButtonStyle())
-                            .help("Back to Fn and Control + Fn")
-                    }
-                    Button(changed ? "Change" : "Set my own") { model.startRecording(.correction) }
+                } else if model.shortcut != .standard {
+                    Button("Reset", action: model.resetShortcut)
                         .buttonStyle(QuietButtonStyle())
-                        .help("Record another shortcut for correcting text")
+                        .help("Back to Fn and Control + Fn")
                 }
                 // The keys stay after the correction: they are what the user takes away from here.
                 recordableKeys(SettingsKeycap.Key.keys(for: model.shortcut.correction), target: .correction,
@@ -292,7 +286,7 @@ extension KeylapseSettingsView {
         // Try it obeys the same rules as a correction anywhere else, so it says when the
         // active layout would make the real correction refuse or ask.
         if demo.needsSwitch { return "Switch to \(demo.layoutName) first, then press the keys." }
-        return model.shortcut == .standard ? "Press these keys, or set your own." : "Press these keys."
+        return model.shortcut == .standard ? "Press these keys, or click them to change." : "Press these keys."
     }
 }
 
