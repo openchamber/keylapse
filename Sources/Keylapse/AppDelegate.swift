@@ -1,4 +1,5 @@
 import Cocoa
+import Sparkle
 import Carbon
 import Combine
 import ServiceManagement
@@ -34,6 +35,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
     private let monitor = KeyboardMonitor()
     private var statusItem: NSStatusItem!
     private var statusMenu: NSMenu!
+    /// In-app updates from the GitHub releases: checked at launch and once a day after that
+    /// (Info.plist), and on request from the menu. Sparkle shows its own window when there is
+    /// something new; nothing is downloaded until the user says so.
+    private var updater: SPUStandardUpdaterController?
     private var timer: Timer?
     private var layoutBeforeFn: String?
     private var paused = false
@@ -51,6 +56,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         NSApp.setActivationPolicy(.accessory)
         NSApp.appearance = NSAppearance(named: .darkAqua)
         NSApp.mainMenu = Self.editingMenu()
+        updater = SPUStandardUpdaterController(startingUpdater: true, updaterDelegate: nil, userDriverDelegate: nil)
         // An app that has stopped responding must not hold Keylapse, and with it the keyboard,
         // for the six seconds Accessibility waits by default.
         AXUIElementSetMessagingTimeout(AXUIElementCreateSystemWide(), 1)
@@ -278,6 +284,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         item(menu, paused ? "Resume" : "Pause", #selector(togglePause))
         menu.addItem(.separator())
         item(menu, "Show Welcome Page", #selector(showWelcome))
+        item(menu, "Check for Updates…", #selector(checkForUpdates))
         item(menu, "Quit Keylapse", #selector(quit), "q")
     }
 
@@ -342,6 +349,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         settingsModel.showWelcome()
         openSettings()
     }
+    @objc private func checkForUpdates() { updater?.checkForUpdates(nil) }
     @objc private func quit() { NSApp.terminate(nil) }
 
     @objc func openSettings() {

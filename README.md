@@ -36,6 +36,8 @@ With two supported layouts, correction is immediate. With more, choose the desti
 
 The welcome window can be shown again any time: click the flower in the menu bar, then **Show Welcome Page**.
 
+Keylapse updates itself: it looks for a new version on GitHub when it starts and once a day after that, and **Check for Updates…** in the flower's menu looks right away. When there is one, a window says what is new and offers to install it; nothing is downloaded before you agree. That check is the only thing Keylapse ever sends anywhere, and it carries no text of yours.
+
 Keylapse can start when you log in. It can also correct the selection when you click the flower in the menu bar; the menu then opens with a right-click. All of these are in the Keylapse window under **Behavior**. Correction goes through the clipboard; whatever you had copied before is put back afterwards, and clipboard managers are asked not to keep what passes through. Your text stays on your Mac and is not saved by Keylapse.
 
 ## Languages

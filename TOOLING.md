@@ -15,7 +15,7 @@ Everything here runs from the repository root. `bun kl-dev` is the menu; the sam
 
 Unit tests: `bash scripts/test.sh` (Swift Testing). To install by hand: quit Keylapse, copy the bundle to `/Applications` with `ditto`, open it.
 
-Releases: push a tag `v<version>` matching `CFBundleShortVersionString` in `Resources/Info.plist`; the Release workflow on GitHub builds, signs with the Developer ID certificate, notarises and publishes `Keylapse-<version>.zip` (details in HANDOFF.md under Environment). A local notarised build needs `SIGNING_IDENTITY` set to the Developer ID certificate and either `NOTARY_PROFILE` or `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` in the environment of `bash scripts/build.sh`.
+Releases: push an annotated tag `v<version>` matching `CFBundleShortVersionString` in `Resources/Info.plist` (`git tag -a v0.2.0 -m "What is new"`; the message becomes the release notes and what the in-app update window shows); the Release workflow on GitHub builds a universal binary (`UNIVERSAL=1 bash scripts/build.sh`), signs with the Developer ID certificate, notarises, writes the Sparkle `appcast.xml` and publishes both with `Keylapse-<version>.zip` (details in HANDOFF.md under Environment). The first build on a machine needs the network once, for `swift package resolve` to fetch Sparkle. A local notarised build needs `SIGNING_IDENTITY` set to the Developer ID certificate and either `NOTARY_PROFILE` or `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` in the environment of `bash scripts/build.sh`.
 
 ## What an agent can and cannot verify here
 

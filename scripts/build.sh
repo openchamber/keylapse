@@ -19,19 +19,36 @@ if [ -z "$IDENTITY" ]; then
         exit 1
     fi
 fi
-swift build --package-path "$ROOT" -c release
-BIN="$(swift build --package-path "$ROOT" -c release --show-bin-path)"
+# UNIVERSAL=1 (the release workflow) builds for Apple silicon and Intel together.
+ARCHS=()
+[ "${UNIVERSAL:-}" = "1" ] && ARCHS=(--arch arm64 --arch x86_64)
+swift build --package-path "$ROOT" -c release "${ARCHS[@]}"
+BIN="$(swift build --package-path "$ROOT" -c release "${ARCHS[@]}" --show-bin-path)"
 APP="$ROOT/dist/Keylapse.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN/Keylapse" "$APP/Contents/MacOS/Keylapse"
+# Sparkle, for in-app updates, is a binary framework from the package artifacts; the binary
+# looks for it in Contents/Frameworks (rpath set in Package.swift).
+SPARKLE="$(find "$ROOT/.build/artifacts" -type d -name Sparkle.framework -path '*macos*' | head -1)"
+[ -n "$SPARKLE" ] || { printf 'Sparkle.framework not found under .build/artifacts; run swift package resolve.\n' >&2; exit 1; }
+rm -rf "$APP/Contents/Frameworks"
+mkdir -p "$APP/Contents/Frameworks"
+ditto "$SPARKLE" "$APP/Contents/Frameworks/Sparkle.framework"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 cp "$ROOT/Resources/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 cp "$ROOT/Resources/FlowerTemplate.png" "$ROOT/Resources/FlowerTemplate@2x.png" "$ROOT/Resources/FlowerGlyph.png" "$ROOT/Resources/FlowerGlyphSmall.png" "$APP/Contents/Resources/"
+# Sparkle's nested pieces are signed first, inside out, then the framework, then the app.
+FRAMEWORK="$APP/Contents/Frameworks/Sparkle.framework"
+NESTED=("$FRAMEWORK/Versions/B/XPCServices/Installer.xpc" "$FRAMEWORK/Versions/B/XPCServices/Downloader.xpc"
+        "$FRAMEWORK/Versions/B/Autoupdate" "$FRAMEWORK/Versions/B/Updater.app" "$FRAMEWORK")
 if [ "$IDENTITY" = "-" ]; then
+    for piece in "${NESTED[@]}"; do codesign --force --sign - "$piece"; done
     codesign --force --sign - "$APP"
 elif [[ -z "${SIGNING_IDENTITY:-}" || "$IDENTITY" == "Keylapse Local Development" ]]; then
+    for piece in "${NESTED[@]}"; do codesign --force --sign "$IDENTITY" --timestamp=none "$piece"; done
     codesign --force --sign "$IDENTITY" --timestamp=none "$APP"
 else
+    for piece in "${NESTED[@]}"; do codesign --force --options runtime --timestamp --sign "$IDENTITY" "$piece"; done
     codesign --force --options runtime --timestamp --sign "$IDENTITY" "$APP"
 fi
 codesign --verify --deep --strict "$APP"
