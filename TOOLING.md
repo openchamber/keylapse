@@ -15,6 +15,8 @@ Everything here runs from the repository root. `bun kl-dev` is the menu; the sam
 
 Unit tests: `bash scripts/test.sh` (Swift Testing). To install by hand: quit Keylapse, copy the bundle to `/Applications` with `ditto`, open it.
 
+Releases: push a tag `v<version>` matching `CFBundleShortVersionString` in `Resources/Info.plist`; the Release workflow on GitHub builds, signs with the Developer ID certificate, notarises and publishes `Keylapse-<version>.zip` (details in HANDOFF.md under Environment). A local notarised build needs `SIGNING_IDENTITY` set to the Developer ID certificate and either `NOTARY_PROFILE` or `APPLE_ID`, `APPLE_PASSWORD`, `APPLE_TEAM_ID` in the environment of `bash scripts/build.sh`.
+
 ## What an agent can and cannot verify here
 
 - No Screen Recording for a terminal process and no assistive access for `osascript`, so screenshots and UI scripting fail. Use `preview`.

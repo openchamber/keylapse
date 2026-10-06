@@ -8,7 +8,7 @@ Select `ghbdsn`, press `Control + Fn`, and get `привіт` without retyping. 
 
 ## Get started
 
-1. Move Keylapse to Applications and open it. A welcome window appears.
+1. Download `Keylapse-<version>.zip` from the [latest release](https://github.com/openchamber/keylapse/releases/latest), unzip it, move Keylapse to Applications and open it. A welcome window appears.
 2. Under **Setup**, click **Grant…** beside Accessibility and allow Keylapse in the macOS settings that open. A checkmark appears once granted, usually beside Input Monitoring too, since Accessibility covers it; if that row still asks, click its **Grant…** as well.
 3. If Setup asks you to set Fn to **Do Nothing**, click **Open Settings** and choose that action in macOS Keyboard settings. A checkmark appears once ready. Quit any other Fn language switcher.
 4. Under **Try it**, the word is already selected: press `Control + Fn` and watch it become `hello`. Then click **Start using Keylapse**. Keylapse follows the input sources enabled in macOS; click the flower in the menu bar, then **Keylapse** at the top of the menu, to open the window again.
@@ -62,3 +62,7 @@ bash scripts/build.sh   # dist/Keylapse.app, signed with a local certificate (ru
 ```
 
 `bun kl-dev` (or `node scripts/kl-dev.mjs`) lists the everyday commands; TOOLING.md explains them, and HANDOFF.md and DESIGN.md describe how the app and its window are meant to work.
+
+## License
+
+Keylapse is free software under the GNU General Public License, version 3: see LICENSE. Copyright 2026 Iuliia Ivashko.

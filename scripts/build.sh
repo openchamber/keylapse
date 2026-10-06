@@ -36,9 +36,16 @@ else
 fi
 codesign --verify --deep --strict "$APP"
 ditto -c -k --keepParent "$APP" "$ROOT/dist/Keylapse.zip"
+# Notarise with a keychain profile (xcrun notarytool store-credentials) or, as the release
+# workflow does, with an Apple ID, an app-specific password and the team id from the environment.
 if [ -n "${NOTARY_PROFILE:-}" ]; then
     xcrun notarytool submit "$ROOT/dist/Keylapse.zip" --keychain-profile "$NOTARY_PROFILE" --wait
-    xcrun stapler staple "$APP"
-    ditto -c -k --keepParent "$APP" "$ROOT/dist/Keylapse.zip"
+elif [ -n "${APPLE_ID:-}" ] && [ -n "${APPLE_PASSWORD:-}" ] && [ -n "${APPLE_TEAM_ID:-}" ]; then
+    xcrun notarytool submit "$ROOT/dist/Keylapse.zip" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+else
+    printf 'Built: %s\n' "$APP"
+    exit 0
 fi
+xcrun stapler staple "$APP"
+ditto -c -k --keepParent "$APP" "$ROOT/dist/Keylapse.zip"
 printf 'Built: %s\n' "$APP"

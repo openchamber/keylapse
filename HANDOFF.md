@@ -6,7 +6,9 @@ Durable facts for whoever picks this up. What the user sees is in README.md, how
 
 - macOS 26 on Apple Silicon, Command Line Tools 27 (Swift 6.4). Full Xcode is not installed and not needed.
 - Linker warnings about missing `CommandLineTools/Developer/...` search paths are harmless.
-- Local builds are signed with a self-made "Keylapse Local Development" certificate so the signature stays stable between rebuilds and macOS keeps the Accessibility grant. Run `bash scripts/setup-local-signing.sh` once. There is no Developer ID yet; `SIGNING_IDENTITY` and `NOTARY_PROFILE` in `scripts/build.sh` are ready for one.
+- Local builds are signed with a self-made "Keylapse Local Development" certificate so the signature stays stable between rebuilds and macOS keeps the Accessibility grant. Run `bash scripts/setup-local-signing.sh` once.
+- Releases are built on GitHub (`.github/workflows/release.yml`): pushing a `v<version>` tag that matches `CFBundleShortVersionString` builds, signs with the Developer ID certificate, notarises and publishes `Keylapse-<version>.zip` as a GitHub release. The certificate and Apple credentials are repository secrets (listed at the top of the workflow); `scripts/build.sh` signs with `SIGNING_IDENTITY` and notarises with `NOTARY_PROFILE` or with `APPLE_ID`, `APPLE_PASSWORD` and `APPLE_TEAM_ID`. `.github/workflows/ci.yml` runs the unit tests and an ad hoc release build on every push and pull request.
+- The public repository is github.com/openchamber/keylapse. The licence is GPL v3 (LICENSE).
 
 ## Commands
 
@@ -85,6 +87,6 @@ The unit tests, the table checks and the window previews pass; these need a pers
 ## Planned next
 
 1. A tester's copy from `bun kl-dev package`, then the list above.
-2. Before a public release: a Developer ID and notarisation (`scripts/build.sh` is ready for both), and a licence.
+2. The first public release: push `main` to openchamber/keylapse, then tag `v0.1.0` and push the tag; the Release workflow does the rest.
 
 Not planned: Caps Lock as a shortcut (recording refuses it with a reason), double-tap modifiers, flag emoji next to layouts (a language is not a country; the accent dot stays), a button that revokes Keylapse's own permissions (they belong to macOS), a Set up later button, going straight from Accessibility to the Fn step without closing System Settings.
