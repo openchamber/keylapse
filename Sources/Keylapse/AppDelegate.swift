@@ -258,7 +258,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWind
         setStatus(.notice(error.localizedDescription))
         NSSound.beep()
         NoticePanel.show(error.localizedDescription,
-                         near: NSWorkspace.shared.frontmostApplication.flatMap { correction.corrector.selectionRect(for: $0.processIdentifier) })
+                         near: NSWorkspace.shared.frontmostApplication.flatMap { correction.corrector.selectionSpot(for: $0.processIdentifier) })
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {

@@ -178,7 +178,7 @@ final class CorrectionFlow: NSObject, NSWindowDelegate {
         panel.delegate = self
         panel.cancel = { [weak self] in self?.finishChoosing(nil) }
         phase = .choosing(panel, completion)
-        panel.place(near: NSWorkspace.shared.frontmostApplication.flatMap { corrector.selectionRect(for: $0.processIdentifier) })
+        panel.place(near: NSWorkspace.shared.frontmostApplication.flatMap { corrector.selectionSpot(for: $0.processIdentifier) })
         panel.makeKeyAndOrderFront(nil)
         panel.selectFirstChoice()
         // A click anywhere else puts the chooser away, like any menu: in another app (global
