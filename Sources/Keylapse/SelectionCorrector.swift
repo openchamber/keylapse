@@ -162,9 +162,9 @@ final class SelectionCorrector {
 
     // MARK: Replacing it
 
-    /// Replaces the selection, known to hold `text` typed on the pair's first layout, with what
-    /// the same keys type on the second.
-    func correct(_ text: String, using pair: LayoutPair) {
+    /// Replaces the selection, known to hold `text`, with `converted`: the same keys on the
+    /// layout the text was meant for.
+    func replace(_ text: String, with converted: String) {
         guard !busy else { return }
         guard AXIsProcessTrusted() else {
             completion?(.failure(AppError.message("Enable Keylapse in Privacy & Security → Accessibility.")))
@@ -176,11 +176,9 @@ final class SelectionCorrector {
         // reliably (a menu bar app has no key window while its chooser is closing), and the
         // user's clipboard has no reason to be touched for a field Keylapse owns.
         if app.processIdentifier == Self.ownPID {
-            correctOwnField(using: pair)
+            replaceInOwnField(text, with: converted)
             return
         }
-        let converted: String
-        do { converted = try pair.convert(text) } catch { completion?(.failure(error)); return }
         let selectionUnchanged = selectionCheck(for: app.processIdentifier)
         busy = true
         // The shortcut keys must be up, or the paste would arrive as a different shortcut.
@@ -212,14 +210,16 @@ final class SelectionCorrector {
         NSApp.windows.compactMap { $0.firstResponder as? NSTextView }.first { $0.selectedRange().length > 0 }
     }
 
-    private func correctOwnField(using pair: LayoutPair) {
+    private func replaceInOwnField(_ text: String, with converted: String) {
         guard let editor = ownEditor else {
             completion?(.failure(Self.selectFirst))
             return
         }
         let range = editor.selectedRange()
         do {
-            let converted = try pair.convert((editor.string as NSString).substring(with: range))
+            guard (editor.string as NSString).substring(with: range) == text else {
+                throw AppError.message("The app or selection changed; correction was cancelled.")
+            }
             // Through the text system, so the field's owner hears of it and ⌘Z undoes it.
             guard editor.shouldChangeText(in: range, replacementString: converted) else {
                 throw AppError.message("This field cannot be edited.")

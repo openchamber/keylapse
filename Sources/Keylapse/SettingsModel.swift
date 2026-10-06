@@ -181,7 +181,7 @@ final class SettingsModel: ObservableObject {
         let unmistakable = samples.first { TypedLayout.choose(for: $0.typed, layouts: layouts, activeID: "") == .source($0.source.id) }
         guard let sample = unmistakable ?? samples.first else { setDemo(nil); return }
         setDemo(DemoSample(typed: sample.typed, result: "hello", layoutID: sample.source.id, layoutName: sample.source.languageTitle,
-                           needsSwitch: (try? inputs.typedSource(of: sample.typed, among: supported)) == nil))
+                           needsSwitch: (try? inputs.typedRuns(of: sample.typed, among: supported)) == nil))
     }
 
     private func setDemo(_ sample: DemoSample?) {

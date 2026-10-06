@@ -147,24 +147,25 @@ final class InputSources {
         return supported
     }
 
-    /// The layout the text was typed on, worked out from its letters first and from the active
-    /// layout only when the letters leave more than one possibility. Throws what to tell the
-    /// user when it cannot be known.
-    func typedSource(of text: String, among supported: [KeyboardSource]) throws -> KeyboardSource {
-        let choice = TypedLayout.choose(for: text, layouts: supported.map { (id: $0.id, alphabet: $0.alphabet) }, activeID: currentID)
-        switch choice {
-        case .source(let id):
-            guard let source = supported.first(where: { $0.id == id }) else { fallthrough }
-            return source
+    /// A stretch of the selected text and the layout it was typed on.
+    typealias TypedRun = (text: String, source: KeyboardSource)
+
+    /// The text word by word with the layout each was typed on, worked out from the letters
+    /// first and from the active layout only when the letters leave more than one possibility.
+    /// Throws what to tell the user when it cannot be known.
+    func typedRuns(of text: String, among supported: [KeyboardSource]) throws -> [TypedRun] {
+        let split = TypedLayout.split(text, layouts: supported.map { (id: $0.id, alphabet: $0.alphabet) }, activeID: currentID)
+        switch split {
+        case .runs(let runs):
+            return try runs.map { run in
+                guard let source = supported.first(where: { $0.id == run.sourceID }) else {
+                    throw AppError.message("The available layouts changed. Try correcting the text again.")
+                }
+                return (run.text, source)
+            }
         case .ambiguous:
             throw AppError.message("Switch to the layout used to type this text, then try again.")
         case .impossible:
-            // Letters of two of the user's layouts together: the selection took in too much.
-            // A letter none of the correctable layouts has is a different matter.
-            let correctable = Set(supported.map(\.alphabet).joined())
-            if Set(LayoutAlphabet.derive(from: text)).isSubset(of: correctable) {
-                throw AppError.message("Select only the mistyped text.")
-            }
             throw AppError.message("Keylapse can’t correct some of these letters.")
         case .noLetters:
             throw ConversionError.noLetters

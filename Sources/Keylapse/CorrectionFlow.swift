@@ -2,7 +2,7 @@ import Cocoa
 import KeylapseCore
 
 /// One correction, from the shortcut to the replaced text: read the selection, work out which
-/// layout typed it, ask where to when there is more than one answer, replace it.
+/// layout typed each word, ask where to when there is more than one answer, replace it.
 ///
 /// Nothing selected is a silent no-op, checked before the chooser and before any layout error.
 final class CorrectionFlow: NSObject, NSWindowDelegate {
@@ -74,24 +74,43 @@ final class CorrectionFlow: NSObject, NSWindowDelegate {
         }
     }
 
-    /// The selection is known to hold this text. Which layout typed it comes from its letters,
-    /// and from the active layout only when the letters fit several; if that cannot be known
-    /// the user is told now, before any chooser. With one possible destination the text is
-    /// corrected straight away, otherwise the chooser asks where to.
+    /// One way to correct the selection: where each run goes, by the layout it was typed on.
+    private struct Plan {
+        let id: String
+        let title: String
+        let destination: (KeyboardSource) -> KeyboardSource
+    }
+
+    /// The selection is known to hold this text. Which layout typed each word comes from its
+    /// letters, and from the active layout only when the letters fit several; if that cannot be
+    /// known the user is told now, before any chooser. Text typed on one layout goes to one of
+    /// the others; text typed on two layouts swaps them, or goes whole to a third. With one
+    /// possible answer the text is corrected straight away, otherwise the chooser asks.
     private func correct(_ text: String, in app: NSRunningApplication) {
         do {
             let supported = try inputs.supportedSources()
-            let source = try inputs.typedSource(of: text, among: supported)
-            let destinations = supported.filter { $0.id != source.id }
-            if destinations.count == 1 {
-                try replace(text, from: source, to: destinations[0])
+            let runs = try inputs.typedRuns(of: text, among: supported)
+            var sources: [KeyboardSource] = []
+            for run in runs where !sources.contains(where: { $0.id == run.source.id }) { sources.append(run.source) }
+            guard sources.count <= 2 else { throw AppError.message("Select text typed on no more than two layouts.") }
+            var plans: [Plan] = []
+            if sources.count == 2 {
+                let (first, second) = (sources[0], sources[1])
+                plans.append(Plan(id: "swap", title: "\(first.displayName) ↔ \(second.displayName)",
+                                  destination: { $0.id == first.id ? second : first }))
+            }
+            for other in supported where !sources.contains(where: { $0.id == other.id }) {
+                plans.append(Plan(id: other.id, title: other.displayName, destination: { _ in other }))
+            }
+            if plans.count == 1 {
+                try replace(runs, by: plans[0])
                 return
             }
             let activeID = inputs.currentID
             let selectionUnchanged = corrector.selectionCheck(for: app.processIdentifier)
-            presentDestinations(destinations) { [weak self] id in
+            presentDestinations(plans.map { (id: $0.id, title: $0.title) }) { [weak self] id in
                 guard let self else { return }
-                guard let target = supported.first(where: { $0.id == id }) else {
+                guard let plan = plans.first(where: { $0.id == id }) else {
                     self.onSilentStop?(AppError.message("Correction cancelled."))
                     return
                 }
@@ -100,7 +119,7 @@ final class CorrectionFlow: NSObject, NSWindowDelegate {
                     guard self.inputs.currentID == activeID, selectionUnchanged() else {
                         throw AppError.message("The app, layout or selection changed; correction was cancelled.")
                     }
-                    try self.replace(text, from: source, to: target)
+                    try self.replace(runs, by: plan)
                 }
             }
         } catch { fail(error) }
@@ -122,21 +141,29 @@ final class CorrectionFlow: NSObject, NSWindowDelegate {
         }
     }
 
-    /// Corrects the selection from the layout it was typed on to the one it was meant for, and
-    /// leaves the meant one active so typing can go on, unless the user changed layout meanwhile.
-    private func replace(_ text: String, from source: KeyboardSource, to target: KeyboardSource) throws {
+    /// Corrects each run from the layout it was typed on to the one the plan sends it to, and
+    /// leaves the last run's destination active so typing can go on, unless the user changed
+    /// layout meanwhile.
+    private func replace(_ runs: [InputSources.TypedRun], by plan: Plan) throws {
         let available = try inputs.supportedSources()
-        guard available.contains(where: { $0.id == source.id }), available.contains(where: { $0.id == target.id }) else {
-            throw AppError.message("The available layouts changed. Try correcting the text again.")
+        var converted = ""
+        var target: KeyboardSource?
+        for run in runs {
+            let destination = plan.destination(run.source)
+            guard available.contains(where: { $0.id == run.source.id }), available.contains(where: { $0.id == destination.id }) else {
+                throw AppError.message("The available layouts changed. Try correcting the text again.")
+            }
+            converted += try inputs.layoutPair(run.source, destination).convert(run.text)
+            target = destination
         }
-        let pair = try inputs.layoutPair(source, target)
+        guard let target else { throw ConversionError.noLetters }
         let originalID = inputs.currentID
         corrector.didReplace = { [weak self] in
             guard let self, self.inputs.currentID == originalID, originalID != target.id else { return }
             do { try self.inputs.select(target.id) } catch { self.onFinished?(.failure(error)) }
         }
         phase = .replacing
-        corrector.correct(text, using: pair)
+        corrector.replace(runs.map(\.text).joined(), with: converted)
     }
 
     private func fail(_ error: Error) {
@@ -146,9 +173,8 @@ final class CorrectionFlow: NSObject, NSWindowDelegate {
 
     // MARK: Chooser
 
-    func presentDestinations(_ sources: [KeyboardSource], completion: @escaping (String?) -> Void) {
-        let panel = DestinationPanel.make(choices: sources.map { (id: $0.id, title: $0.displayName) },
-                                          target: self, action: #selector(chooseDestination))
+    func presentDestinations(_ choices: [(id: String, title: String)], completion: @escaping (String?) -> Void) {
+        let panel = DestinationPanel.make(choices: choices, target: self, action: #selector(chooseDestination))
         panel.delegate = self
         panel.cancel = { [weak self] in self?.finishChoosing(nil) }
         phase = .choosing(panel, completion)

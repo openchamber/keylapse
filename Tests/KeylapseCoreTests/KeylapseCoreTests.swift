@@ -339,6 +339,40 @@ struct ShortcutTests {
         #expect(choose("ghbdsn", active: "uk") == .ambiguous)
     }
 
+    private func split(_ text: String, active: String) -> TypedLayout.Split {
+        TypedLayout.split(text, layouts: Self.layouts, activeID: active)
+    }
+
+    @Test func wordsTypedOnTwoLayoutsAreSplitIntoRuns() {
+        #expect(split("ghbdsn цщкдв", active: "en") == .runs([.init(text: "ghbdsn ", sourceID: "en"), .init(text: "цщкдв", sourceID: "uk")]))
+        // Latin letters fit English and German alike, and neither neighbour nor the active layout says which.
+        #expect(split("ghbdsn цщкдв", active: "uk") == .ambiguous)
+        #expect(split("руддщ, world! 123", active: "en") == .runs([.init(text: "руддщ, ", sourceID: "uk"), .init(text: "world! 123", sourceID: "en")]))
+        #expect(split(" - руддщ", active: "en") == .runs([.init(text: " - руддщ", sourceID: "uk")]))
+    }
+
+    @Test func wordsOfOneLayoutMakeOneRun() {
+        #expect(split("ghbdsn ghbdsn", active: "en") == .runs([.init(text: "ghbdsn ghbdsn", sourceID: "en")]))
+        #expect(split("ghbdsn ghbdsn", active: "uk") == .ambiguous)
+        #expect(split("lj,ht üjxe", active: "uk") == .runs([.init(text: "lj,ht üjxe", sourceID: "de")]))
+    }
+
+    @Test func sharedWordsFollowTheirNeighboursThenTheActiveLayout() {
+        #expect(split("мама прывітанне", active: "en") == .runs([.init(text: "мама прывітанне", sourceID: "by")]))
+        #expect(split("мама руддщ", active: "by") == .runs([.init(text: "мама руддщ", sourceID: "uk")]))
+        #expect(split("мама руддщ world", active: "en") == .runs([.init(text: "мама руддщ ", sourceID: "uk"), .init(text: "world", sourceID: "en")]))
+        #expect(split("мама world", active: "en") == .ambiguous)
+        #expect(split("мама", active: "de") == .ambiguous)
+        #expect(split("ghbdsn мама прывітанне руддщ", active: "en") == .ambiguous)
+    }
+
+    @Test func splitRefusesWhatNoLayoutTypesAndTextWithoutLetters() {
+        #expect(split("ghbdsn объект", active: "uk") == .impossible)
+        #expect(split("helloпривіт", active: "uk") == .impossible)
+        #expect(split("123 🙂", active: "uk") == .noLetters)
+        #expect(split("", active: "uk") == .noLetters)
+    }
+
     @Test func textNoSingleLayoutCanTypeIsRefused() {
         #expect(choose("объект", active: "uk") == .impossible)
         #expect(choose("ъ із російсько", active: "uk") == .impossible)

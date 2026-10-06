@@ -181,7 +181,14 @@ enum Diagnostics {
                 throw AppError.message("Round-trip mapping failed for \(character)")
             }
         }
-        print("PASS: \(en.name) ↔ \(uk.name), examples and all 66 Ukrainian letter cases round-trip")
+        // Text typed on both layouts, word by word, swapped between them.
+        let mixed = "ghbdsn цщкдв! 123"
+        let runs = try sources.typedRuns(of: mixed, among: [en, uk])
+        let swapped = try runs.map { run in try sources.layoutPair(run.source, run.source.id == en.id ? uk : en).convert(run.text) }.joined()
+        guard runs.map(\.text) == ["ghbdsn ", "цщкдв! 123"], swapped == "привіт world! 123" else {
+            throw AppError.message("\(mixed): expected привіт world! 123, got \(swapped)")
+        }
+        print("PASS: \(en.name) ↔ \(uk.name), examples, mixed text and all 66 Ukrainian letter cases round-trip")
     }
 
     // MARK: Launch-time
@@ -420,7 +427,7 @@ enum Diagnostics {
         if arguments.contains("--preview-destinations") {
             let sources = app.inputs.sources.filter(\.supportsCorrection)
             if sources.count > 1 {
-                app.correction.presentDestinations(Array(sources.dropFirst())) { _ in }
+                app.correction.presentDestinations(sources.dropFirst().map { (id: $0.id, title: $0.displayName) }) { _ in }
                 app.correction.chooser?.setFrameOrigin(Self.offScreen)
                 RunLoop.current.run(until: Date().addingTimeInterval(0.2))
             }
