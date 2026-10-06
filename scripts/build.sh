@@ -22,8 +22,8 @@ fi
 # UNIVERSAL=1 (the release workflow) builds for Apple silicon and Intel together.
 ARCHS=()
 [ "${UNIVERSAL:-}" = "1" ] && ARCHS=(--arch arm64 --arch x86_64)
-swift build --package-path "$ROOT" -c release "${ARCHS[@]}"
-BIN="$(swift build --package-path "$ROOT" -c release "${ARCHS[@]}" --show-bin-path)"
+swift build --package-path "$ROOT" -c release ${ARCHS[@]+"${ARCHS[@]}"}
+BIN="$(swift build --package-path "$ROOT" -c release ${ARCHS[@]+"${ARCHS[@]}"} --show-bin-path)"
 APP="$ROOT/dist/Keylapse.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN/Keylapse" "$APP/Contents/MacOS/Keylapse"
