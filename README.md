@@ -4,6 +4,8 @@ Switch keyboard layouts and fix text typed in the wrong one. For macOS 13 or lat
 
 Select `ghbdsn`, press `Control + Fn`, and get `привіт` without retyping. It works both ways: `руддщ` becomes `hello`.
 
+![The Keylapse window on first launch: setup steps, a word to try the correction on, and the shortcut keys](docs/welcome.png)
+
 ## Get started
 
 1. Move Keylapse to Applications and open it. A welcome window appears.
@@ -20,6 +22,8 @@ Prefer to keep the system Fn behaviour? In the welcome window click **Use other 
 - **Undo:** press `⌘Z` in your editor.
 
 Both shortcuts can be changed in the Keylapse window under **Shortcuts**: click the drawn keys of a row, then press what you want instead. The two shortcuts are independent; the only rule is that they differ.
+
+![The Keylapse window: setup, behavior, the list of layouts and the two shortcuts](docs/settings.png)
 
 - **Modifier keys on their own:** one or several held together and released without any other key, such as Fn, Right Command, Control-Fn or Control-Option. Fn alone switches as soon as you press it; any other modifier keys switch when you release them, and pressing a regular key with them cancels the switch, so shortcuts such as Option-E keep working.
 - **A combination:** any key with a modifier, such as Option-Space or Control-Shift-L, or an F-key on its own. Combinations are intercepted, so the app in front does not also receive them. You can take a combination macOS already uses, such as Command-Space; the row says what stops working while Keylapse runs.
@@ -42,6 +46,19 @@ Keylapse works out which layout each word of the selected text was typed on from
 
 Whatever you select is corrected. A sentence typed partly on one layout and partly on another is swapped word by word, so `ghbdsn цщкдв` becomes `привіт world`; a word that changes alphabet midway is split there. With more than one way to correct the selection, a small **Correct to** list asks which; whatever you choose there works. For text from two layouts the first choice swaps them (English ↔ Ukrainian) and each other choice moves the whole text to that layout.
 
+![The Correct to list under a selected sentence typed on two layouts](docs/correct-to.png)
+
 English and Ukrainian have been tested with text replacement in an editor. Other languages still need testing. Letters typed through dead keys cannot always be corrected.
 
 Correction needs an editable field that accepts a paste. Password fields and some editors are not supported.
+
+## Building from source
+
+Keylapse is a Swift package with no dependencies. With Xcode or the Command Line Tools installed:
+
+```sh
+bash scripts/test.sh    # unit tests
+bash scripts/build.sh   # dist/Keylapse.app, signed with a local certificate (run scripts/setup-local-signing.sh once)
+```
+
+`bun kl-dev` (or `node scripts/kl-dev.mjs`) lists the everyday commands; TOOLING.md explains them, and HANDOFF.md and DESIGN.md describe how the app and its window are meant to work.
