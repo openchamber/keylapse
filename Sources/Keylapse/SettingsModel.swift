@@ -81,9 +81,9 @@ final class SettingsModel: ObservableObject {
     @Published var rejected: RecordingTarget?
     enum RecordingTarget { case switchKey, correction }
     private var recordingMonitor: Any?
-    /// A click anywhere ends a recording, like Esc. The click that starts one must not end it
-    /// at once, so the check runs after the click has been handled and skips when a recording
-    /// has just begun.
+    /// A click anywhere ends a recording, like Esc. Buttons act when the mouse goes up, so the
+    /// check runs after the mouse-up has been handled: a click on the recording keys has ended
+    /// the recording itself by then, and one that has just started another is skipped.
     private var clickMonitors: [Any] = []
     private var recordingJustStarted = false
     /// Modifier keys held so far during recording, shown on the keycaps as they are pressed.
@@ -346,9 +346,10 @@ final class SettingsModel: ObservableObject {
         recordingJustStarted = true
         DispatchQueue.main.async { [weak self] in self?.recordingJustStarted = false }
         let mouseDown: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+        let mouseUp: NSEvent.EventTypeMask = [.leftMouseUp, .rightMouseUp, .otherMouseUp]
         clickMonitors = [
             NSEvent.addGlobalMonitorForEvents(matching: mouseDown) { [weak self] _ in self?.stopRecording() },
-            NSEvent.addLocalMonitorForEvents(matching: mouseDown) { [weak self] event in
+            NSEvent.addLocalMonitorForEvents(matching: mouseUp) { [weak self] event in
                 DispatchQueue.main.async {
                     guard let self, self.recording != nil, !self.recordingJustStarted else { return }
                     self.stopRecording()
