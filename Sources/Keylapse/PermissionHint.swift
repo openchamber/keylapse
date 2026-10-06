@@ -146,6 +146,13 @@ final class PermissionHint {
             return
         }
         seenSettings = true
+        // Behind another app's window System Settings is still "on screen", but the tag, which
+        // floats above everything, would then hang over whatever the user switched to. It shows
+        // only while System Settings is the app in front, and comes back with it.
+        guard NSWorkspace.shared.frontmostApplication?.bundleIdentifier == Self.settingsBundleID else {
+            panel.orderOut(nil)
+            return
+        }
         let screen = NSScreen.screens.first { $0.frame.intersects(settings) } ?? NSScreen.main
         stepAside(from: settings, on: screen)
         // Straddles the window's bottom edge near its right side, where the pane is empty and the
