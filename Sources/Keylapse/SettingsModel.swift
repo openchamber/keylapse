@@ -81,6 +81,11 @@ final class SettingsModel: ObservableObject {
     @Published var rejected: RecordingTarget?
     enum RecordingTarget { case switchKey, correction }
     private var recordingMonitor: Any?
+    /// A click anywhere ends a recording, like Esc. The click that starts one must not end it
+    /// at once, so the check runs after the click has been handled and skips when a recording
+    /// has just begun.
+    private var clickMonitors: [Any] = []
+    private var recordingJustStarted = false
     /// Modifier keys held so far during recording, shown on the keycaps as they are pressed.
     /// They become a chord when all are released with nothing else pressed, or the modifiers
     /// of a combination if a key follows.
@@ -322,6 +327,19 @@ final class SettingsModel: ObservableObject {
         stopRecording()
         recordingWithoutFn = withoutFn
         recording = target
+        recordingJustStarted = true
+        DispatchQueue.main.async { [weak self] in self?.recordingJustStarted = false }
+        let mouseDown: NSEvent.EventTypeMask = [.leftMouseDown, .rightMouseDown, .otherMouseDown]
+        clickMonitors = [
+            NSEvent.addGlobalMonitorForEvents(matching: mouseDown) { [weak self] _ in self?.stopRecording() },
+            NSEvent.addLocalMonitorForEvents(matching: mouseDown) { [weak self] event in
+                DispatchQueue.main.async {
+                    guard let self, self.recording != nil, !self.recordingJustStarted else { return }
+                    self.stopRecording()
+                }
+                return event
+            },
+        ].compactMap { $0 }
         recordingHint = nil
         rejected = nil
         heldWhileRecording = []
@@ -339,6 +357,8 @@ final class SettingsModel: ObservableObject {
     func stopRecording() {
         if let recordingMonitor { NSEvent.removeMonitor(recordingMonitor) }
         recordingMonitor = nil
+        clickMonitors.forEach(NSEvent.removeMonitor)
+        clickMonitors = []
         guard recording != nil else { return }
         recordingWithoutFn = false
         recording = nil
